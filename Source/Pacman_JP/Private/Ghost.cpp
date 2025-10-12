@@ -1,0 +1,97 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+#include "Ghost.h"
+#include "Components/BoxComponent.h"
+#include "PaperFlipbookComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "PacManPlayer.h"
+#include "AIControllerBase.h"
+
+AGhost::AGhost()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	IsDead = false;
+	IsFrightened = false;
+
+	// Collision : écouter les overlaps avec Pac-Man
+	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGhost::OnOverlap);
+}
+
+void AGhost::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Flipbook de départ (normal)
+	if (BaseFlipbook)
+	{
+		Flipbook->SetFlipbook(BaseFlipbook);
+	}
+
+	// Le AIControllerBase s’occupe de lancer le Behavior Tree,
+	// donc pas besoin d’appeler RunBehaviorTree ici.
+}
+
+void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Vérifie si on a touché Pac-Man
+	if (APacManPlayer* Pacman = Cast<APacManPlayer>(OtherActor))
+	{
+		if (IsFrightened)
+		{
+			// Pac-Man mange le fantôme
+			SetDeadMode();
+			Pacman->Score += 200; // Bonus
+		}
+		else if (!IsDead)
+		{
+			// Pac-Man est touché (perte de vie à gérer via GameMode)
+			UE_LOG(LogTemp, Warning, TEXT("Pac-Man touché par un fantôme !"));
+		}
+	}
+}
+
+void AGhost::SetAliveMode()
+{
+	IsDead = false;
+	IsFrightened = false;
+
+	if (BaseFlipbook)
+		Flipbook->SetFlipbook(BaseFlipbook);
+
+	// Tu peux aussi réactiver la collision et la rendre dangereuse
+	CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+}
+
+void AGhost::SetDeadMode()
+{
+	IsDead = true;
+	IsFrightened = false;
+
+	if (DeadFlipbook)
+		Flipbook->SetFlipbook(DeadFlipbook);
+
+	// Désactive la collision pour éviter les contacts inutiles
+	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AGhost::SetFrightenMode()
+{
+	IsFrightened = true;
+	IsDead = false;
+
+	if (FrightenFlipbook)
+		Flipbook->SetFlipbook(FrightenFlipbook);
+
+	// Change éventuellement la vitesse du mouvement
+	PawnMovement->MaxSpeed = 250.f;
+}
+
+void AGhost::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+}
+
+
