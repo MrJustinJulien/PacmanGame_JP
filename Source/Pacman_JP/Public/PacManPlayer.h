@@ -27,10 +27,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	int32 Score;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void MoveUp();
-	void MoveDown();
-	void MoveLeft();
-	void MoveRight();	
+	void MoveForward(float Value);
+	void MoveRight(float Value);
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };

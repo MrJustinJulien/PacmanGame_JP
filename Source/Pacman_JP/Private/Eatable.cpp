@@ -6,7 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
-// #include "PacmanCharacter.h"
+#include "PacManPlayer.h"
 
 // Sets default values
 AEatable::AEatable()
@@ -14,45 +14,46 @@ AEatable::AEatable()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-
+	// --- Collision ---
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxCollision->SetupAttachment(RootComponent);
-	BoxCollision->SetCollisionProfileName(TEXT("OverlapAllDynamic"));
+	RootComponent = BoxCollision;
+
+	BoxCollision->SetCollisionProfileName("OverlapAllDynamic");
 	BoxCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AEatable::OnOverlapBegin);
 
+	// --- Mesh visuel ---
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetupAttachment(BoxCollision);
-	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	StaticMesh->SetSimulatePhysics(false);
 }
 
 // Called when the game starts or when spawned
 void AEatable::BeginPlay()
 {
-	Super::BeginPlay();
-	
+	Super::BeginPlay();	
 }
 
 // Called every frame
 void AEatable::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-void AEatable::OnEat()
+void AEatable::OnEat(APacManPlayer* Player)
 {
 }
 
 void AEatable::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent*
 	OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	/* if (OtherActor && OtherActor->IsA(APacmanCharacter::StaticClass()))
+	if (!OtherActor || OtherActor == this) return;
+
+	APacManPlayer* Pacman = Cast<APacManPlayer>(OtherActor);
+	if (Pacman)
 	{
-		OnEat(); // appelle la logique spécifique (PacGum, SuperPacGum…)
-		Destroy(); // détruit l’objet (il disparaît)
-	}  */
+		// OnEat();
+		Destroy();
+	}
 }
 

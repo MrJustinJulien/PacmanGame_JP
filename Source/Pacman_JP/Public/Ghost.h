@@ -32,14 +32,14 @@ private:
 
 public:
 	// === VISUELS ===
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	class UPaperFlipbook* BaseFlipbook;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
+	UStaticMeshComponent* BaseMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	class UPaperFlipbook* DeadFlipbook;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
+	UStaticMeshComponent* DeadMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visual")
-	class UPaperFlipbook* FrightenFlipbook;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
+	UStaticMeshComponent* FrightenedMesh;
 
 	// === ÉTATS ===
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")

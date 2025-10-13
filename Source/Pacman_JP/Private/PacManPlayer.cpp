@@ -3,9 +3,11 @@
 
 #include "PacManPlayer.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Components/InputComponent.h"
 
 APacManPlayer::APacManPlayer()
 {
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
 	Score = 0;
 }
 
@@ -18,28 +20,24 @@ void APacManPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("MoveUp", IE_Pressed, this, &APacManPlayer::MoveUp);
-	PlayerInputComponent->BindAction("MoveDown", IE_Pressed, this, &APacManPlayer::MoveDown);
-	PlayerInputComponent->BindAction("MoveLeft", IE_Pressed, this, &APacManPlayer::MoveLeft);
-	PlayerInputComponent->BindAction("MoveRight", IE_Pressed, this, &APacManPlayer::MoveRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &APacManPlayer::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APacManPlayer::MoveRight);
 }
 
-void APacManPlayer::MoveUp()
+void APacManPlayer::MoveForward(float Value)
 {
-	AddMovementInput(FVector::ForwardVector, 1.0f);
+	if (Value != 0.f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MoveForward: %f"), Value);
+		AddMovementInput(FVector::ForwardVector, Value);
+	}
 }
 
-void APacManPlayer::MoveDown()
+void APacManPlayer::MoveRight(float Value)
 {
-	AddMovementInput(-FVector::ForwardVector, 1.0f);
-}
-
-void APacManPlayer::MoveLeft()
-{
-	AddMovementInput(-FVector::RightVector, 1.0f);
-}
-
-void APacManPlayer::MoveRight()
-{
-	AddMovementInput(FVector::RightVector, 1.0f);
+	if (Value != 0.f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("MoveRight: %f"), Value);
+		AddMovementInput(FVector::RightVector, Value);
+	}
 }

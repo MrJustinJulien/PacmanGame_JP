@@ -14,5 +14,5 @@ class PACMAN_JP_API ASuperPacGome : public AEatable
 {
 	GENERATED_BODY()
 	
-	virtual void OnEat() override;
+	virtual void OnEat(class APacManPlayer* Player) override;
 };

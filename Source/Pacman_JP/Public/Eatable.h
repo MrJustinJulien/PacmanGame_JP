@@ -14,9 +14,7 @@ class PACMAN_JP_API AEatable : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AEatable();
-
 	
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;	
@@ -27,7 +25,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, category = "Components")
 	class UStaticMeshComponent* StaticMesh;
 
-	virtual void OnEat();
+	virtual void OnEat(class APacManPlayer* Player);
 
 public:	
 	// Called every frame
@@ -35,6 +33,7 @@ public:
 
 private:
 
+	UFUNCTION()
 	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent*
 		OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

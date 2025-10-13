@@ -4,9 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
-#include "PaperFlipbookComponent.h"
-#include "GameFramework/FloatingPawnMovement.h"
-#include "Components/BoxComponent.h"
 #include "PacEntity.generated.h"
 
 UCLASS()
@@ -22,13 +19,13 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Collision")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UBoxComponent* CollisionBox;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
-	class UPaperFlipbookComponent* Flipbook;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UStaticMeshComponent* Mesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class UFloatingPawnMovement* PawnMovement;
 
 public:	

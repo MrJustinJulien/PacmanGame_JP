@@ -2,6 +2,8 @@
 
 
 #include "PacEntity.h"
+#include "GameFramework/FloatingPawnMovement.h"
+#include "Components/BoxComponent.h"
 
 // Sets default values
 APacEntity::APacEntity()
@@ -9,22 +11,20 @@ APacEntity::APacEntity()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
-	SetRootComponent(CollisionBox);
-	CollisionBox->SetBoxExtent(FVector(25.f, 25.f, 25.f));
-	CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
-	CollisionBox->SetGenerateOverlapEvents(true);
+    CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+    SetRootComponent(CollisionBox);
+    CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+    CollisionBox->SetGenerateOverlapEvents(true);
+    CollisionBox->SetSimulatePhysics(false);
 
-	// --- Flipbook (sprite animé) ---
-	Flipbook = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("Flipbook"));
-	Flipbook->SetupAttachment(RootComponent);
-	Flipbook->SetRelativeRotation(FRotator(90.f, 0.f, 0.f)); // face caméra top-down
-	Flipbook->SetRelativeLocation(FVector(0.f, 0.f, 25.f));
+    // === Mesh visuel ===
+    Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+    Mesh->SetupAttachment(CollisionBox);
+    Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// --- Mouvement ---
-	PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
-	PawnMovement->UpdatedComponent = RootComponent;
-	PawnMovement->MaxSpeed = 400.f;
+    // === Mouvement ===
+    PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
+    PawnMovement->UpdatedComponent = CollisionBox;
 
 }
 

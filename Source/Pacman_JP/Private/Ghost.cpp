@@ -3,7 +3,6 @@
 
 #include "Ghost.h"
 #include "Components/BoxComponent.h"
-#include "PaperFlipbookComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PacManPlayer.h"
 #include "AIControllerBase.h"
@@ -17,17 +16,14 @@ AGhost::AGhost()
 
 	// Collision : écouter les overlaps avec Pac-Man
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGhost::OnOverlap);
+	CollisionBox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 }
 
 void AGhost::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Flipbook de départ (normal)
-	if (BaseFlipbook)
-	{
-		Flipbook->SetFlipbook(BaseFlipbook);
-	}
+	Mesh->SetVisibility(true);
 
 	// Le AIControllerBase s’occupe de lancer le Behavior Tree,
 	// donc pas besoin d’appeler RunBehaviorTree ici.
@@ -58,36 +54,27 @@ void AGhost::SetAliveMode()
 {
 	IsDead = false;
 	IsFrightened = false;
-
-	if (BaseFlipbook)
-		Flipbook->SetFlipbook(BaseFlipbook);
-
-	// Tu peux aussi réactiver la collision et la rendre dangereuse
-	CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+	Mesh->SetVisibility(true);
+	if (DeadMesh) DeadMesh->SetVisibility(false);
+	if (FrightenedMesh) FrightenedMesh->SetVisibility(false);
 }
 
 void AGhost::SetDeadMode()
 {
 	IsDead = true;
 	IsFrightened = false;
-
-	if (DeadFlipbook)
-		Flipbook->SetFlipbook(DeadFlipbook);
-
-	// Désactive la collision pour éviter les contacts inutiles
-	CollisionBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (DeadMesh) DeadMesh->SetVisibility(true);
+	Mesh->SetVisibility(false);
+	if (FrightenedMesh) FrightenedMesh->SetVisibility(false);
 }
 
 void AGhost::SetFrightenMode()
 {
 	IsFrightened = true;
 	IsDead = false;
-
-	if (FrightenFlipbook)
-		Flipbook->SetFlipbook(FrightenFlipbook);
-
-	// Change éventuellement la vitesse du mouvement
-	PawnMovement->MaxSpeed = 250.f;
+	if (FrightenedMesh) FrightenedMesh->SetVisibility(true);
+	Mesh->SetVisibility(false);
+	if (DeadMesh) DeadMesh->SetVisibility(false);
 }
 
 void AGhost::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
