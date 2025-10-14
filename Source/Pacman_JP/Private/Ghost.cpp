@@ -44,6 +44,7 @@ void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		}
 		else if (!IsDead)
 		{
+			Pacman->Vies -= 1;
 			// Pac-Man est touché (perte de vie à gérer via GameMode)
 			UE_LOG(LogTemp, Warning, TEXT("Pac-Man touché par un fantôme !"));
 		}

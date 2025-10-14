@@ -18,13 +18,23 @@ AEatable::AEatable()
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	RootComponent = BoxCollision;
 
-	BoxCollision->SetCollisionProfileName("OverlapAllDynamic");
+
+	BoxCollision->SetBoxExtent(FVector(25.f)); // Taille de la gomme
+	BoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	BoxCollision->SetCollisionObjectType(ECC_WorldDynamic); // type par défaut pour un objet ramassable
+
+	// Ignore tout sauf les Pawns (PacMan et fantômes)
+	BoxCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxCollision->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+
 	BoxCollision->SetGenerateOverlapEvents(true);
 	BoxCollision->OnComponentBeginOverlap.AddDynamic(this, &AEatable::OnOverlapBegin);
 
-	// --- Mesh visuel ---
+	// === Mesh visuel ===
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
 	StaticMesh->SetupAttachment(BoxCollision);
+	StaticMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	StaticMesh->SetSimulatePhysics(false);
 }
 
@@ -52,7 +62,7 @@ void AEatable::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 	APacManPlayer* Pacman = Cast<APacManPlayer>(OtherActor);
 	if (Pacman)
 	{
-		// OnEat();
+		OnEat(Pacman);
 		Destroy();
 	}
 }

@@ -9,8 +9,7 @@ void APacGome::OnEat(APacManPlayer* Player)
 {
 	if (Player)
 	{
-		Player->Score += 10; // +10 points pour une gomme normale
-		UE_LOG(LogTemp, Log, TEXT("Pac-Gomme mangée : Score = %d"), Player->Score);
+		Player->Score += 10;
 	}
 
 	// UGameplayStatics::PlaySoundAtLocation(this, EatSound, GetActorLocation());

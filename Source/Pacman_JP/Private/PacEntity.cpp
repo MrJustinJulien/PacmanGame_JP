@@ -13,9 +13,15 @@ APacEntity::APacEntity()
 
     CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
     SetRootComponent(CollisionBox);
-    CollisionBox->SetCollisionProfileName(TEXT("Pawn"));
+
+    CollisionBox->SetBoxExtent(FVector(50.f));
+    CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    CollisionBox->SetCollisionObjectType(ECC_Pawn); // type standard pour les personnages
+
+    CollisionBox->SetCollisionResponseToAllChannels(ECR_Ignore);
+    CollisionBox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap); // overlap les Eatables
+
     CollisionBox->SetGenerateOverlapEvents(true);
-    CollisionBox->SetSimulatePhysics(false);
 
     // === Mesh visuel ===
     Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
