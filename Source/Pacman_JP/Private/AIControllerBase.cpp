@@ -5,6 +5,7 @@
 #include "BehaviorTree/BlackboardData.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
+#include "Ghost.h"
 
 AAIControllerBase::AAIControllerBase()
 {
@@ -17,38 +18,10 @@ void AAIControllerBase::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
 
-	if (!InPawn)
-		return;
-
-	// Essaie de trouver un BehaviorTree dans le Pawn (par exemple AGhost)
-	if (!BehaviorTreeAsset)
+	AGhost* Ghost = Cast<AGhost>(InPawn);
+	if (Ghost && Ghost->TreeAsset)
 	{
-		// Certains de tes Pawns (comme les fantômes) auront un UPROPERTY TreeAsset exposé
-		// On tente de le récupérer automatiquement
-		UObject* TreeProperty = nullptr;
-
-		// On regarde si le Pawn possède une propriété nommée "TreeAsset"
-		UClass* PawnClass = InPawn->GetClass();
-		FProperty* FoundProp = PawnClass->FindPropertyByName(TEXT("TreeAsset"));
-		if (FoundProp)
-		{
-			TreeProperty = FoundProp->ContainerPtrToValuePtr<UObject>(InPawn);
-			BehaviorTreeAsset = Cast<UBehaviorTree>(TreeProperty);
-		}
-	}
-
-	// Démarre le Behavior Tree
-	if (BehaviorTreeAsset)
-	{
-		if (BehaviorTreeAsset->BlackboardAsset)
-		{
-			MyBlackboard->InitializeBlackboard(*BehaviorTreeAsset->BlackboardAsset);
-		}
-
-		BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AIControllerBase: Aucun BehaviorTree assigné pour %s"), *GetName());
+		MyBlackboard->InitializeBlackboard(*Ghost->TreeAsset->BlackboardAsset);
+		BehaviorTreeComponent->StartTree(*Ghost->TreeAsset);
 	}
 }

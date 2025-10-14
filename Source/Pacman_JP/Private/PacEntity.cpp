@@ -31,7 +31,7 @@ APacEntity::APacEntity()
     // === Mouvement ===
     PawnMovement = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("PawnMovement"));
     PawnMovement->UpdatedComponent = CollisionBox;
-
+    PawnMovement->MaxSpeed = 350.f;
 }
 
 // Called when the game starts or when spawned

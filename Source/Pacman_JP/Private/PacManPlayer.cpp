@@ -38,28 +38,32 @@ void APacManPlayer::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Vérifie si un virage préparé est possible
-    if (NextDir != CurrentDir && NextDir != EMoveDir::None && CanMoveInDirection(NextDir))
+    // --- Vérifie si on peut appliquer la direction souhaitée ---
+    if (NextDir != EMoveDir::None && NextDir != CurrentDir)
     {
-        CurrentDir = NextDir;
-        NextDir = EMoveDir::None;
-        FaceDirection(CurrentDir);
+        // On n'applique PAS si bloqué par un mur
+        if (CanMoveInDirection(NextDir))
+        {
+            CurrentDir = NextDir;
+            NextDir = EMoveDir::None;
+            FaceDirection(CurrentDir);
+        }
     }
 
-    // Si aucune direction valide, ne bouge pas
+    // --- Si la direction actuelle est bloquée, on arrête le mouvement ---
     if (CurrentDir == EMoveDir::None || !CanMoveInDirection(CurrentDir))
     {
         bIsMoving = false;
         return;
     }
 
-    // Déplacement constant
-    FVector MoveDir = DirToVector(CurrentDir);
-    FVector NewLocation = GetActorLocation() + MoveDir * MoveSpeed * DeltaTime;
-    SetActorLocation(NewLocation);
+    // --- Déplacement normal ---
+    FVector DirVec = DirToVector(CurrentDir);
+    FVector NewLoc = GetActorLocation() + DirVec * MoveSpeed * DeltaTime;
+    SetActorLocation(NewLoc);
     bIsMoving = true;
 
-    // Snap sur grille pour éviter le drift
+    // --- Réalignement léger pour éviter le drift ---
     FVector SnapLoc = GetActorLocation();
     if (CurrentDir == EMoveDir::Up || CurrentDir == EMoveDir::Down)
         SnapLoc.Y = FMath::GridSnap(SnapLoc.Y, 10.f);
@@ -67,6 +71,7 @@ void APacManPlayer::Tick(float DeltaTime)
         SnapLoc.X = FMath::GridSnap(SnapLoc.X, 10.f);
     SetActorLocation(SnapLoc);
 }
+
 
 void APacManPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -110,7 +115,12 @@ bool APacManPlayer::CanMoveInDirection(EMoveDir Dir) const
 
     FVector Direction = DirToVector(Dir);
     FVector Start = GetActorLocation();
-    FVector End = Start + Direction * (TileSize * 0.6f);
+
+    float EffectiveDistance = TileSize * 0.45f;  // < 0.5f = avance un peu plus
+    float OverrunDistance = 20.f;                // marge de tolérance (test visuel)
+
+    FVector End = Start + Direction * (EffectiveDistance + OverrunDistance);
+
 
     FCollisionQueryParams Params;
     Params.AddIgnoredActor(this);
@@ -141,4 +151,30 @@ void APacManPlayer::FaceDirection(EMoveDir Dir)
     if (Dir == EMoveDir::None) return;
     FVector DirVector = DirToVector(Dir);
     SetActorRotation(DirVector.Rotation());
+}
+
+void APacManPlayer::AutoAlignToGrid(EMoveDir Dir)
+{
+    FVector Loc = GetActorLocation();
+
+    // Quand on veut aller verticalement, on aligne sur l’axe horizontal
+    if (Dir == EMoveDir::Up || Dir == EMoveDir::Down)
+    {
+        float SnappedY = FMath::GridSnap(Loc.Y, TileSize / 2.f); // demi-case si ton map offset est ainsi
+        if (FMath::Abs(Loc.Y - SnappedY) < SnapTolerance)
+        {
+            Loc.Y = SnappedY;
+            SetActorLocation(Loc);
+        }
+    }
+    // Quand on veut aller horizontalement, on aligne sur l’axe vertical
+    else if (Dir == EMoveDir::Left || Dir == EMoveDir::Right)
+    {
+        float SnappedX = FMath::GridSnap(Loc.X, TileSize / 2.f);
+        if (FMath::Abs(Loc.X - SnappedX) < SnapTolerance)
+        {
+            Loc.X = SnappedX;
+            SetActorLocation(Loc);
+        }
+    }
 }

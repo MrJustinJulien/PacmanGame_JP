@@ -3,6 +3,8 @@
 
 #include "Ghost.h"
 #include "Components/BoxComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PacManPlayer.h"
 #include "AIControllerBase.h"
@@ -17,16 +19,30 @@ AGhost::AGhost()
 	// Collision : écouter les overlaps avec Pac-Man
 	CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGhost::OnOverlap);
 	CollisionBox->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+
+	M_Normal = nullptr;
+	M_Frightened = nullptr;
+	M_Dead = nullptr;
 }
 
 void AGhost::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Mesh->SetVisibility(true);
+	if (AAIControllerBase* AIC = Cast<AAIControllerBase>(GetController()))
+	{
+		AIC->RunBehaviorTree(TreeAsset);
+		UpdateBlackboard();
+	}
 
-	// Le AIControllerBase s’occupe de lancer le Behavior Tree,
-	// donc pas besoin d’appeler RunBehaviorTree ici.
+	if (M_Normal)
+		Mesh->SetMaterial(0, M_Normal);
+}
+
+void AGhost::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	UpdateBlackboard();
 }
 
 void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
@@ -45,8 +61,8 @@ void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		else if (!IsDead)
 		{
 			Pacman->Vies -= 1;
-			// Pac-Man est touché (perte de vie à gérer via GameMode)
-			UE_LOG(LogTemp, Warning, TEXT("Pac-Man touché par un fantôme !"));
+	
+			UE_LOG(LogTemp, Warning, TEXT("Pac-Man touche par un fantome !"));
 		}
 	}
 }
@@ -55,28 +71,37 @@ void AGhost::SetAliveMode()
 {
 	IsDead = false;
 	IsFrightened = false;
-	Mesh->SetVisibility(true);
-	if (DeadMesh) DeadMesh->SetVisibility(false);
-	if (FrightenedMesh) FrightenedMesh->SetVisibility(false);
+	if (M_Normal) Mesh->SetMaterial(0, M_Normal);
 }
 
 void AGhost::SetDeadMode()
 {
 	IsDead = true;
 	IsFrightened = false;
-	if (DeadMesh) DeadMesh->SetVisibility(true);
-	Mesh->SetVisibility(false);
-	if (FrightenedMesh) FrightenedMesh->SetVisibility(false);
+	if (M_Dead) Mesh->SetMaterial(0, M_Dead);
 }
 
 void AGhost::SetFrightenMode()
 {
 	IsFrightened = true;
 	IsDead = false;
-	if (FrightenedMesh) FrightenedMesh->SetVisibility(true);
-	Mesh->SetVisibility(false);
-	if (DeadMesh) DeadMesh->SetVisibility(false);
+	if (M_Frightened) Mesh->SetMaterial(0, M_Frightened);
+	
 }
+
+void AGhost::UpdateBlackboard()
+{
+	AAIControllerBase* AIC = Cast<AAIControllerBase>(GetController());
+	if (AIC && AIC->MyBlackboard)
+	{
+		AIC->MyBlackboard->SetValueAsBool(TEXT("IsFrightened"), IsFrightened);
+		AIC->MyBlackboard->SetValueAsBool(TEXT("IsDead"), IsDead);
+
+		APacManPlayer* Player = Cast<APacManPlayer>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+		AIC->MyBlackboard->SetValueAsObject(TEXT("PlayerActor"), Player);
+	}
+}
+
 
 void AGhost::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

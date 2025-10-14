@@ -12,7 +12,7 @@ EBTNodeResult::Type UBTTaskNode_FindRespawnPoint::ExecuteTask(UBehaviorTreeCompo
 	if (!AICon) return EBTNodeResult::Failed;
 
 	// Exemple : respawn au centre de la map (tu peux mettre une variable globale)
-	TargetLocation = FVector(0.f, 0.f, 0.f);
+	TargetLocation = FVector(-600.f, -50.f, 0.f);
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (BB)

@@ -17,14 +17,13 @@ UCLASS()
 class PACMAN_JP_API UBTTaskNode_ChasePlayer : public UBTTaskNode
 {
 	GENERATED_BODY()
+public:
+
+	UBTTaskNode_ChasePlayer();
 
 private:
 	UPROPERTY()
 	UNavigationSystemV1* NavArea;
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-	FVector TargetLocation;
 
 private:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
