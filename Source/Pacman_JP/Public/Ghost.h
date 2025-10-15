@@ -56,12 +56,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class UBehaviorTree* TreeAsset;
 
+	// Position initiale pour respawn
+	FVector SpawnLocation;
+
+	// Gestion des timers
+	FTimerHandle FrightenTimerHandle;
+	FTimerHandle RespawnTimerHandle;
+
 	// === MÉTHODES D’ÉTAT ===
 	void SetAliveMode();
 
 	void SetDeadMode();
 
 	void SetFrightenMode();
+	void EndFrightenMode();
 
 	void UpdateBlackboard();
 

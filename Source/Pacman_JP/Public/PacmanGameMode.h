@@ -14,6 +14,5 @@ class PACMAN_JP_API APacmanGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
-public:
 	APacmanGameMode();
 };
