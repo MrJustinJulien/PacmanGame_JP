@@ -58,13 +58,15 @@ void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		{
 			// Pac-Man mange le fantôme
 			SetDeadMode();
-			Pacman->Score += 200; // Bonus
+			Pacman->Score += 200;
+			UGameplayStatics::PlaySoundAtLocation(this, DeathSound, GetActorLocation());
 		}
 		else if (!IsDead && Pacman->Vies != 1)
 		{
 			Pacman->Vies -= 1;
+			UGameplayStatics::PlaySoundAtLocation(this, Pacman->DamageSound, GetActorLocation());
 		}
-		else if(Pacman->Vies == 1)
+		else if(!IsDead && Pacman->Vies == 1)
 		{
 			Pacman->Destroy();
 		}
@@ -91,16 +93,6 @@ void AGhost::SetDeadMode()
 	if (M_Dead) Mesh->SetMaterial(0, M_Dead);
 
 	UpdateBlackboard();
-
-	// Planifie le retour en vie après 3 secondes
-	GetWorldTimerManager().ClearTimer(RespawnTimerHandle);
-	GetWorldTimerManager().SetTimer(
-		RespawnTimerHandle,
-		this,
-		&AGhost::SetAliveMode,
-		10.0f,
-		false
-	);
 }
 
 void AGhost::SetFrightenMode()

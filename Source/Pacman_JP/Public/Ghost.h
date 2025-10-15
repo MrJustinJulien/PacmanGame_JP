@@ -56,6 +56,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class UBehaviorTree* TreeAsset;
 
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	USoundBase* DeathSound;
+
 	// Position initiale pour respawn
 	FVector SpawnLocation;
 

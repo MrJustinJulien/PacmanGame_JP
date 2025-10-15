@@ -23,6 +23,8 @@ private:
 	UNavigationSystemV1* NavArea;
 
 public:
+	UBTTaskNode_FindAmbushPosition();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	FVector TargetLocation;
 

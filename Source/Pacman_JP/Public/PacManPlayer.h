@@ -62,6 +62,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	int32 Vies;
 
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	USoundBase* DamageSound;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 

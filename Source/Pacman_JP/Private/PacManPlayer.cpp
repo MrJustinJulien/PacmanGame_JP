@@ -3,6 +3,7 @@
 
 #include "PacManPlayer.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "Components/InputComponent.h"
 #include "Components/BoxComponent.h"
@@ -32,6 +33,14 @@ APacManPlayer::APacManPlayer()
 void APacManPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PC)
+    {
+        PC->SetInputMode(FInputModeGameOnly());
+        PC->bShowMouseCursor = false;           
+        PC->Possess(this);                      
+    }
 }
 
 void APacManPlayer::Tick(float DeltaTime)

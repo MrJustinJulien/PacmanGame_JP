@@ -25,5 +25,6 @@ void ASuperPacGome::OnEat(APacManPlayer* Player)
 		}
 	}
 
-	// UGameplayStatics::PlaySoundAtLocation(this, SuperEatSound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(this, PickUpEatSound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(this, TimerCooldown, GetActorLocation());
 }
