@@ -47,8 +47,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	bool bIsMoving;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float SnapTolerance = 30.f;
+
 	bool CanMoveInDirection(const FVector& Direction) const;
 	void FaceDirection(const FVector& Direction);
+	void AutoAlignToGrid(EMoveDir Dir);
 
 public:
 

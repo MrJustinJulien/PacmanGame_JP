@@ -12,5 +12,5 @@ void APacGome::OnEat(APacManPlayer* Player)
 		Player->Score += 10;
 	}
 
-	// UGameplayStatics::PlaySoundAtLocation(this, EatSound, GetActorLocation());
+	UGameplayStatics::PlaySoundAtLocation(this, EatSound, GetActorLocation());
 }

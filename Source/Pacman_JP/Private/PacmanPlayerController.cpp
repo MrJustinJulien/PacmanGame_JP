@@ -11,6 +11,7 @@ APacmanPlayerController::APacmanPlayerController()
 	bShowMouseCursor = false;
 	bEnableClickEvents = false;
 	bEnableTouchEvents = false;
+	bAutoManageActiveCameraTarget = false;
 }
 
 void APacmanPlayerController::BeginPlay()

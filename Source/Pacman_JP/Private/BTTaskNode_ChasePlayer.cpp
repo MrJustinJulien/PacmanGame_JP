@@ -2,29 +2,42 @@
 
 
 #include "BTTaskNode_ChasePlayer.h"
-#include "AIController.h"
+#include "AIControllerBase.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "NavigationSystem.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/Actor.h"
 #include "PacManPlayer.h"
+
+UBTTaskNode_ChasePlayer::UBTTaskNode_ChasePlayer()
+{
+	NodeName = "Chase Player";
+}
 
 EBTNodeResult::Type UBTTaskNode_ChasePlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AAIController* AICon = OwnerComp.GetAIOwner();
-	if (!AICon) return EBTNodeResult::Failed;
+    AAIControllerBase* Controller = Cast<AAIControllerBase>(OwnerComp.GetAIOwner());
+    if (!Controller) return EBTNodeResult::Failed;
 
-	APacManPlayer* Player = Cast<APacManPlayer>(UGameplayStatics::GetPlayerPawn(AICon, 0));
-	if (!Player) return EBTNodeResult::Failed;
+    UBlackboardComponent* BB = Controller->MyBlackboard;
+    if (!BB) return EBTNodeResult::Failed;
 
-	TargetLocation = Player->GetActorLocation();
+    FVector TargetLocation = BB->GetValueAsVector(TEXT("TargetLocation"));
+    APawn* ControlledPawn = Controller->GetPawn();
+    if (!ControlledPawn) return EBTNodeResult::Failed;
 
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (BB)
-	{
-		BB->SetValueAsVector(FName("TargetLocation"), TargetLocation);
-	}
+    UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(ControlledPawn->GetWorld());
+    if (NavSys)
+    {
+        FNavLocation Projected;
+        if (NavSys->ProjectPointToNavigation(TargetLocation, Projected))
+        {
+            Controller->MoveToLocation(Projected.Location, 5.0f);
+            return EBTNodeResult::Succeeded; // <--- important : relance la boucle
+        }
+    }
 
-	AICon->MoveToLocation(TargetLocation, 5.0f, true);
-	return EBTNodeResult::Succeeded;
+    return EBTNodeResult::Failed;
 }
 
 

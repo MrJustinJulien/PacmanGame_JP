@@ -3,6 +3,7 @@
 
 #include "BTTaskNode_FindRespawnPoint.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Ghost.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
 
@@ -11,8 +12,11 @@ EBTNodeResult::Type UBTTaskNode_FindRespawnPoint::ExecuteTask(UBehaviorTreeCompo
 	AAIController* AICon = OwnerComp.GetAIOwner();
 	if (!AICon) return EBTNodeResult::Failed;
 
-	// Exemple : respawn au centre de la map (tu peux mettre une variable globale)
-	TargetLocation = FVector(0.f, 0.f, 0.f);
+	AGhost* Ghost = Cast<AGhost>(AICon->GetPawn());
+	if (!Ghost)
+		return EBTNodeResult::Failed;
+
+	TargetLocation = Ghost->SpawnLocation;
 
 	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
 	if (BB)

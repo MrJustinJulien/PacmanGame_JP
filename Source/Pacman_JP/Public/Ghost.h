@@ -31,15 +31,19 @@ private:
 		bool bFromSweep, const FHitResult& SweepResult);
 
 public:
+	virtual void Tick(float DeltaTime) override;
 	// === VISUELS ===
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visuals")
 	UStaticMeshComponent* BaseMesh;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
-	UStaticMeshComponent* DeadMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	UMaterialInterface* M_Normal;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Visual")
-	UStaticMeshComponent* FrightenedMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	UMaterialInterface* M_Frightened;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	UMaterialInterface* M_Dead;
 
 	// === ÉTATS ===
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
@@ -52,15 +56,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class UBehaviorTree* TreeAsset;
 
+	// Position initiale pour respawn
+	FVector SpawnLocation;
+
+	// Gestion des timers
+	FTimerHandle FrightenTimerHandle;
+	FTimerHandle RespawnTimerHandle;
+
 	// === MÉTHODES D’ÉTAT ===
-	UFUNCTION(BlueprintCallable, Category = "State")
 	void SetAliveMode();
 
-	UFUNCTION(BlueprintCallable, Category = "State")
 	void SetDeadMode();
 
-	UFUNCTION(BlueprintCallable, Category = "State")
 	void SetFrightenMode();
+	void EndFrightenMode();
+
+	void UpdateBlackboard();
 
 	// Le fantôme ne reçoit pas d’input, mais on laisse l’override vide
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

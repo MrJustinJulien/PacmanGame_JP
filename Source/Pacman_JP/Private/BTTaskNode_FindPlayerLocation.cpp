@@ -2,34 +2,22 @@
 
 
 #include "BTTaskNode_FindPlayerLocation.h"
-#include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PacManPlayer.h"
-#include "NavigationSystem.h"
 
 EBTNodeResult::Type UBTTaskNode_FindPlayerLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	AAIController* AICon = OwnerComp.GetAIOwner();
-	if (!AICon) return EBTNodeResult::Failed;
+    APacManPlayer* Player = Cast<APacManPlayer>(UGameplayStatics::GetPlayerPawn(OwnerComp.GetWorld(), 0));
+    if (!Player)
+        return EBTNodeResult::Failed;
 
-	APawn* Pawn = AICon->GetPawn();
-	if (!Pawn) return EBTNodeResult::Failed;
+    FVector PlayerLoc = Player->GetActorLocation();
+    PlayerLoc.X = FMath::GridSnap(PlayerLoc.X, 100.f);
+    PlayerLoc.Y = FMath::GridSnap(PlayerLoc.Y, 100.f);
 
-	// Récupérer la position du joueur
-	APacManPlayer* Player = Cast<APacManPlayer>(UGameplayStatics::GetPlayerPawn(Pawn, 0));
-	if (!Player) return EBTNodeResult::Failed;
+    OwnerComp.GetBlackboardComponent()->SetValueAsVector(TEXT("TargetLocation"), PlayerLoc);
 
-	TargetLocation = Player->GetActorLocation();
-
-	// Écrit dans le Blackboard
-	UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-	if (BB)
-	{
-		BB->SetValueAsVector(FName("TargetLocation"), TargetLocation);
-		return EBTNodeResult::Succeeded;
-	}
-
-	return EBTNodeResult::Failed;
+    return EBTNodeResult::Succeeded; // On passe à la tâche suivante
 }
 

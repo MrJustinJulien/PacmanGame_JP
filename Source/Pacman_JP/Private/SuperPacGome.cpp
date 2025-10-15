@@ -11,7 +11,6 @@ void ASuperPacGome::OnEat(APacManPlayer* Player)
 	if(Player)
 	{
 		Player->Score += 50; // +50 points pour une super gomme
-		UE_LOG(LogTemp, Log, TEXT("Super Pac-Gomme mangée : Score = %d"), Player->Score);
 
 		// Active le mode "effrayé" pour tous les fantômes
 		TArray<AActor*> Ghosts;

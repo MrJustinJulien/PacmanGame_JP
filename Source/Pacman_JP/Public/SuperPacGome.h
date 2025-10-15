@@ -13,6 +13,11 @@ UCLASS()
 class PACMAN_JP_API ASuperPacGome : public AEatable
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	USoundBase* SuperEatSound;
 	
+private:
 	virtual void OnEat(class APacManPlayer* Player) override;
 };
