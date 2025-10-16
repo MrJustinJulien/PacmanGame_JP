@@ -30,11 +30,29 @@ void AGhost::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnLocation = GetActorLocation();
+	PawnMovement->Deactivate();
+
+	bHasStarted = false;
 
 	if (AAIControllerBase* AIC = Cast<AAIControllerBase>(GetController()))
 	{
-		AIC->RunBehaviorTree(TreeAsset);
-		UpdateBlackboard();
+		AIC->StopMovement();
+	}
+
+	// Démarre le timer d’activation
+	if (StartDelay > 0.0f)
+	{
+		GetWorldTimerManager().SetTimer(
+			StartDelayHandle,
+			this,
+			&AGhost::StartBehavior,
+			StartDelay,
+			false
+		);
+	}
+	else
+	{
+		StartBehavior();
 	}
 
 	if (M_Normal)
@@ -54,6 +72,10 @@ void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	// Vérifie si on a touché Pac-Man
 	if (APacManPlayer* Pacman = Cast<APacManPlayer>(OtherActor))
 	{
+		if (Pacman->bIsInvincible)
+		{
+			return;
+		}
 		if (IsFrightened)
 		{
 			// Pac-Man mange le fantôme
@@ -64,6 +86,11 @@ void AGhost::OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 		else if (!IsDead && Pacman->Vies != 1)
 		{
 			Pacman->Vies -= 1;
+
+			Pacman->ActivateInvincibility(3.0f);
+			FVector Spawn = FVector(-1800.f, -50.f, 80.f);
+			Pacman->SetActorLocation(Spawn);
+
 			UGameplayStatics::PlaySoundAtLocation(this, Pacman->DamageSound, GetActorLocation());
 		}
 		else if(!IsDead && Pacman->Vies == 1)
@@ -129,6 +156,23 @@ void AGhost::EndFrightenMode()
 		Mesh->SetMaterial(0, M_Normal);
 
 	UpdateBlackboard();
+}
+
+void AGhost::StartBehavior()
+{
+	if (bHasStarted) return;
+
+	bHasStarted = true;
+	PawnMovement->Activate();
+
+	if (AAIControllerBase* AIC = Cast<AAIControllerBase>(GetController()))
+	{
+		if (TreeAsset)
+		{
+			AIC->RunBehaviorTree(TreeAsset);
+			UpdateBlackboard();
+		}
+	}
 }
 
 void AGhost::UpdateBlackboard()

@@ -8,7 +8,7 @@
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Ghost.h"
-#include "EngineUtils.h" // pour TActorIterator
+#include "EngineUtils.h"
 
 UBTTaskNode_FindAmbushPosition::UBTTaskNode_FindAmbushPosition()
 {
@@ -26,15 +26,13 @@ EBTNodeResult::Type UBTTaskNode_FindAmbushPosition::ExecuteTask(UBehaviorTreeCom
     APacManPlayer* Player = Cast<APacManPlayer>(UGameplayStatics::GetPlayerPawn(Pawn->GetWorld(), 0));
     if (!Player) return EBTNodeResult::Failed;
 
-    // Position et direction du joueur
     FVector PlayerLoc = Player->GetActorLocation();
     FVector ForwardDir = Player->GetActorForwardVector();
 
-    // Cherche Blinky dans le monde (parmi les AGhost)
+    // --- Trouve Blinky ---
     AGhost* Blinky = nullptr;
     for (TActorIterator<AGhost> It(Pawn->GetWorld()); It; ++It)
     {
-        // heuristique simple : chercher "Blinky" dans le nom de l'acteur (ou utiliser un tag / propriété)
         if (It->GetName().Contains(TEXT("Blinky")))
         {
             Blinky = *It;
@@ -42,39 +40,50 @@ EBTNodeResult::Type UBTTaskNode_FindAmbushPosition::ExecuteTask(UBehaviorTreeCom
         }
     }
 
-    // Si Blinky trouvé, applique le calcul "Inky" classique
+    FVector DesiredLocation;
+
     if (Blinky)
     {
-        // point devant Pac-Man (200 unités, ajustable)
         FVector AheadOfPac = PlayerLoc + ForwardDir * 200.f;
-
-        // vecteur Blinky -> AheadOfPac
         FVector Diff = AheadOfPac - Blinky->GetActorLocation();
-
-        // cible = AheadOfPac + Diff (double le vecteur)
-        TargetLocation = AheadOfPac + Diff;
+        DesiredLocation = AheadOfPac + Diff; // Ambush point
     }
     else
     {
-        // fallback : se comporter comme Pinky (point devant Pac-Man)
-        TargetLocation = PlayerLoc + ForwardDir * 300.f;
+        DesiredLocation = PlayerLoc + ForwardDir * 300.f; // Fallback Pinky-like
     }
 
-    // Projecte la target sur le NavMesh si possible
-    FNavLocation Projected;
+    // --- Securite NavMesh ---
     UNavigationSystemV1* NavSys = FNavigationSystem::GetCurrent<UNavigationSystemV1>(Pawn->GetWorld());
-    if (NavSys)
+    FNavLocation Projected;
+
+    bool bFoundValidPoint = false;
+    float ShrinkFactor = 1.0f;
+
+    // On essaie de rapprocher progressivement le point de Pac-Man jusqu’a trouver un chemin valide
+    while (!bFoundValidPoint && ShrinkFactor > 0.2f)
     {
-        if (NavSys->ProjectPointToNavigation(TargetLocation, Projected))
+        FVector TestLocation = PlayerLoc + (DesiredLocation - PlayerLoc) * ShrinkFactor;
+        if (NavSys && NavSys->ProjectPointToNavigation(TestLocation, Projected, FVector(200.f, 200.f, 200.f)))
         {
+            bFoundValidPoint = true;
             TargetLocation = Projected.Location;
         }
-        // si échec, on laisse TargetLocation tel quel (BT suivant / MoveTo peut échouer proprement)
+        else
+        {
+            ShrinkFactor -= 0.2f; // rapproche du joueur
+        }
     }
 
-    // Écrit dans le Blackboard
-    UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent();
-    if (BB)
+    if (!bFoundValidPoint)
+    {
+        // Aucun point valide -> fallback simple : autour de Pac-Man
+        TargetLocation = PlayerLoc + FMath::VRand() * 300.f;
+        UE_LOG(LogTemp, Warning, TEXT("Inky: aucun point d'ambush valide trouve, fallback autour du joueur."));
+    }
+
+    // --- Enregistre dans le Blackboard ---
+    if (UBlackboardComponent* BB = OwnerComp.GetBlackboardComponent())
     {
         BB->SetValueAsVector(FName("TargetLocation"), TargetLocation);
         return EBTNodeResult::Succeeded;
@@ -82,6 +91,7 @@ EBTNodeResult::Type UBTTaskNode_FindAmbushPosition::ExecuteTask(UBehaviorTreeCom
 
     return EBTNodeResult::Failed;
 }
+
 
 
 

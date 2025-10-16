@@ -56,8 +56,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
 	class UBehaviorTree* TreeAsset;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
+	float StartDelay = 0.1f;
+
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	USoundBase* DeathSound;
+
+	bool bHasStarted = false;
 
 	// Position initiale pour respawn
 	FVector SpawnLocation;
@@ -65,6 +70,7 @@ public:
 	// Gestion des timers
 	FTimerHandle FrightenTimerHandle;
 	FTimerHandle RespawnTimerHandle;
+	FTimerHandle StartDelayHandle;
 
 	// === MÉTHODES D’ÉTAT ===
 	void SetAliveMode();
@@ -75,6 +81,7 @@ public:
 	void EndFrightenMode();
 
 	void UpdateBlackboard();
+	void StartBehavior();
 
 	// Le fantôme ne reçoit pas d’input, mais on laisse l’override vide
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;

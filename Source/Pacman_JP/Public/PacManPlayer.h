@@ -56,6 +56,12 @@ protected:
 
 public:
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	UMaterialInterface* M_Normal;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Visuals")
+	UMaterialInterface* M_Dead;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Gameplay")
 	int32 Score;
 
@@ -65,15 +71,23 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Audio")
 	USoundBase* DamageSound;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
+	bool bIsInvincible;
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
 	bool CanMoveInDirection(EMoveDir Dir) const;
 	FVector DirToVector(EMoveDir Dir) const;
+	FTimerHandle InvincibleTimerHandle;
 	void FaceDirection(EMoveDir Dir);
+	bool IsAlignedForTurn(EMoveDir DesiredDir) const;
 
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void ActivateInvincibility(float Duration);
+	virtual void DeactivateInvincibility();
 
 
 };
