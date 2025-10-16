@@ -3,6 +3,7 @@
 
 #include "PacManPlayer.h"
 #include "GameFramework/FloatingPawnMovement.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "Components/InputComponent.h"
 #include "Components/BoxComponent.h"
@@ -32,6 +33,17 @@ APacManPlayer::APacManPlayer()
 void APacManPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+
+    APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (PC)
+    {
+        PC->SetInputMode(FInputModeGameOnly());
+        PC->bShowMouseCursor = false;           
+        PC->Possess(this);                      
+    }
+
+    if (M_Normal)
+        Mesh->SetMaterial(0, M_Normal);
 }
 
 void APacManPlayer::Tick(float DeltaTime)
@@ -42,11 +54,11 @@ void APacManPlayer::Tick(float DeltaTime)
     if (NextDir != EMoveDir::None && NextDir != CurrentDir)
     {
         // On n'applique PAS si bloqué par un mur
-        if (CanMoveInDirection(NextDir))
+        if (IsAlignedForTurn(NextDir) && CanMoveInDirection(NextDir))
         {
-            CurrentDir = NextDir;
-            NextDir = EMoveDir::None;
-            FaceDirection(CurrentDir);
+                CurrentDir = NextDir;
+                NextDir = EMoveDir::None;
+                FaceDirection(CurrentDir);
         }
     }
 
@@ -64,14 +76,8 @@ void APacManPlayer::Tick(float DeltaTime)
     bIsMoving = true;
 
     // --- Réalignement léger pour éviter le drift ---
-    FVector SnapLoc = GetActorLocation();
-    if (CurrentDir == EMoveDir::Up || CurrentDir == EMoveDir::Down)
-        SnapLoc.Y = FMath::GridSnap(SnapLoc.Y, 10.f);
-    else
-        SnapLoc.X = FMath::GridSnap(SnapLoc.X, 10.f);
-    SetActorLocation(SnapLoc);
+    AutoAlignToGrid(CurrentDir);
 }
-
 
 void APacManPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -177,4 +183,46 @@ void APacManPlayer::AutoAlignToGrid(EMoveDir Dir)
             SetActorLocation(Loc);
         }
     }
+}
+
+bool APacManPlayer::IsAlignedForTurn(EMoveDir DesiredDir) const
+{
+    FVector Loc = GetActorLocation();
+
+    // On vérifie si Pac-Man est bien aligné selon la direction demandee
+    if (DesiredDir == EMoveDir::Up || DesiredDir == EMoveDir::Down)
+    {
+        float SnappedY = FMath::GridSnap(Loc.Y, TileSize / 2.f);
+        return (FMath::Abs(Loc.Y - SnappedY) < SnapTolerance); // plus strict
+    }
+    else if (DesiredDir == EMoveDir::Left || DesiredDir == EMoveDir::Right)
+    {
+        float SnappedX = FMath::GridSnap(Loc.X, TileSize / 2.f);
+        return (FMath::Abs(Loc.X - SnappedX) < SnapTolerance);
+    }
+
+    return false;
+}
+
+void APacManPlayer::ActivateInvincibility(float Duration)
+{
+    bIsInvincible = true;
+
+    if (M_Dead) Mesh->SetMaterial(0, M_Dead);
+
+    // Termine après la durée spécifiée
+    GetWorldTimerManager().SetTimer(
+        InvincibleTimerHandle,
+        this,
+        &APacManPlayer::DeactivateInvincibility,
+        Duration,
+        false
+    );
+}
+
+void APacManPlayer::DeactivateInvincibility()
+{
+    if (M_Normal) Mesh->SetMaterial(0, M_Normal);
+
+    bIsInvincible = false;
 }

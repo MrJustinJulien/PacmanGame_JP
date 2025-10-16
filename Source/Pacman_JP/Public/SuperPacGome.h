@@ -16,7 +16,10 @@ class PACMAN_JP_API ASuperPacGome : public AEatable
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Audio")
-	USoundBase* SuperEatSound;
+	USoundBase* PickUpEatSound;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+	USoundBase* TimerCooldown;
 	
 private:
 	virtual void OnEat(class APacManPlayer* Player) override;
